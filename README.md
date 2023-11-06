@@ -1,15 +1,19 @@
-# Aliaser
+# Aliaser 🥷
 
 #### App to make command aliases easier
 
-# To Do
+# Installation ⚙️
 
-1. Support for aliases with parameters (functions)
-2. CI/CD (building dmg and save it on server)
+> **Warning**
+> Available only on **MacOS** 
 
-# Make DMG
+Just download the [installer](https://zerdicorp.ru/install_aliaser.sh).
 
-Compile app by running `sbt compile`, then go to `deploy` directory and run `mkapp.sh`, ur dmg installer will be
-created.
+# To Do 📝
 
-Also, u can just install the [dmg](coming soon).
+- UI improvements (more beautiful)
+
+# Development 👨‍💻
+
+After making some changes, compile the application by running `sbt compile`, then go to the `deploy` directory and run
+`makedmg.sh`, your **_dmg_** installer will be created in the **current directory**.

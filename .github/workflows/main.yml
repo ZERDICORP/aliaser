@@ -1,0 +1,12 @@
+name: Deploy via SSH
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        run: sshpass -p ${{ secrets.SRV_PWD }} ssh -oStrictHostKeyChecking=no ${{ secrets.SRV_USER }}@45.8.248.195 ${{ secrets.DEPLOY_SCRIPT }}

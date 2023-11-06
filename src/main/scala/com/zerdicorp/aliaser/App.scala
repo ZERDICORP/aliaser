@@ -3,7 +3,6 @@ package com.zerdicorp.aliaser
 import cats.implicits.catsSyntaxOptionId
 import com.zerdicorp.aliaser.FileUtils.{appendSourceToRcFile, initDotFile, readDotFile, rewriteDotFile}
 import com.zerdicorp.aliaser.UiUtils.textChangeListener
-import com.zerdicorp.aliaser.app.AliasId
 import javafx.beans.value.ChangeListener
 import scalafx.animation.FadeTransition
 import scalafx.application.{JFXApp, Platform}
@@ -23,6 +22,12 @@ object App extends JFXApp {
   private val scheduledExecutor = Executors.newScheduledThreadPool(16)
   private var autosaveJob: Option[ScheduledFuture[_]] = None
   private var statusChangingInProgress: Boolean = false
+  private var gridPane: GridPane = new GridPane()
+  private val defaultGridPaneStyle: String = "-fx-border-color: gray;" + "" +
+    "-fx-border-radius: 5 5 5 5;"
+  private var scrollPane: ScrollPane = new ScrollPane()
+  private val defaultScrollPaneStyle: String = "-fx-background-color: transparent;" +
+    "-fx-border-color: transparent transparent gray transparent;"
 
   private val recordsBox = new VBox {
     spacing = 5
@@ -57,25 +62,34 @@ object App extends JFXApp {
     val record = recordOpt.getOrElse(AliasRecord.empty)
     val recordId = records.size
     val box = new HBox {
-      spacing = 5
+      spacing = 10
     }
     val recordBox = new HBox {
 //      style = "-fx-border-color: purple;"
     }
-    val keyField = new TextField()
-    val valueField = new TextField()
+    val keyField = new TextField {
+      val defaultStyle: String = "-fx-border-radius: 5 0 0 5;" +
+        "-fx-text-fill: white;" +
+        "-fx-background-color: #141414;" +
+        "-fx-border-color: gray;"
+      style = defaultStyle
+    }
+    val valueField = new TextField {
+      val defaultStyle: String = "-fx-border-radius: 0 5 5 0;" +
+        "-fx-text-fill: white;" +
+        "-fx-background-color: #141414;" +
+        "-fx-border-color: gray;"
+      style = defaultStyle
+    }
     val removeBtn = new Button {
       text = "✖"
       style = "-fx-cursor: hand;" +
-        "-fx-background-color: white;" +
+        "-fx-background-color: #141414;" +
         "-fx-text-fill: red;" +
         "-fx-border-color: red;" +
         "-fx-background-radius: 20;" +
         "-fx-border-radius: 20;"
     }
-
-    keyField.style = "-fx-background-radius: 5 0 0 5;"
-    valueField.style = "-fx-background-radius: 0 5 5 0;"
 
     keyField.setText(record.key)
     valueField.setText(record.value)
@@ -94,37 +108,66 @@ object App extends JFXApp {
       autosaveJob.foreach(_.cancel(true))
       autosaveJob = delayedJob(delayMs, TimeUnit.MILLISECONDS) {
         rewriteDotFile(records.values.mkString("\n"))
-        Platform.runLater(() => statusDisplayTransition.play())
+        Platform.runLater(() => {
+          statusDisplayTransition.play()
+          gridPane.style = defaultGridPaneStyle + "-fx-border-color: green;"
+          scrollPane.style = defaultScrollPaneStyle + "-fx-border-color: transparent transparent green transparent;"
+        })
         if (!statusChangingInProgress) {
           statusChangingInProgress = true
           delayedJob(1500, TimeUnit.MILLISECONDS) {
-            Platform.runLater(() => statusDisappearanceTransition.play())
+            Platform.runLater(() => {
+              statusDisappearanceTransition.play()
+              gridPane.style = defaultGridPaneStyle
+              scrollPane.style = defaultScrollPaneStyle
+            })
             statusChangingInProgress = false
           }.some
         }
       }.some
     }
 
-    val changeFlow: (AliasRecord => String => AliasRecord) => ChangeListener[String] = { f =>
+    val changeFlow: (AliasRecord => String => AliasRecord) => FieldType => ChangeListener[String] = { f => fieldType =>
       textChangeListener { text =>
-        val curr = records(recordId)
-        if (text.isEmpty) {
-          keyField.style = "-fx-border-color: red;"
-          valueField.style = "-fx-border-color: red;"
+        def error(): Unit = {
+          fieldType match {
+            case FieldType.KeyField =>
+              keyField.style = keyField.defaultStyle + "-fx-border-color: red;"
+            case FieldType.ValueField =>
+              valueField.style = valueField.defaultStyle + "-fx-border-color: red;"
+          }
+        }
+        if (text.contains("'")) {
+          error()
         } else {
-          keyField.style = "-fx-background-radius: 5 0 0 5;"
-          valueField.style = "-fx-background-radius: 0 5 5 0;"
-          records(recordId) = f(records(recordId))(text)
-          if (curr.key.isEmpty || curr.value.isEmpty) {
-            keyField.style = "-fx-border-color: red;"
-            valueField.style = "-fx-border-color: red;"
-          } else autosave(delayMs = 500)
+          val curr = records(recordId)
+          if (text.isEmpty) {
+            error()
+          } else {
+            fieldType match {
+              case FieldType.KeyField => keyField.style = keyField.defaultStyle
+              case FieldType.ValueField => valueField.style = valueField.defaultStyle
+            }
+            records(recordId) = f(records(recordId))(text)
+            if (curr.key.isEmpty || curr.value.isEmpty) {
+              if (curr.key.isEmpty && fieldType != FieldType.KeyField)
+                keyField.style = keyField.defaultStyle + "-fx-border-color: red;"
+              if (curr.value.isEmpty && fieldType != FieldType.ValueField)
+                valueField.style = valueField.defaultStyle + "-fx-border-color: red;"
+            } else {
+              val needAutosave = fieldType match {
+                case FieldType.KeyField => keyField.text() != curr.key
+                case FieldType.ValueField => valueField.text() != curr.value
+              }
+              if (needAutosave) autosave(delayMs = 500)
+            }
+          }
         }
       }
     }
 
-    keyField.textProperty.addListener(changeFlow(r => t => r.copy(key = t)))
-    valueField.textProperty.addListener(changeFlow(r => t => r.copy(value = t)))
+    keyField.textProperty.addListener(changeFlow(r => t => r.copy(key = t))(FieldType.KeyField))
+    valueField.textProperty.addListener(changeFlow(r => t => r.copy(value = t))(FieldType.ValueField))
 
     recordBox.children = List(keyField, valueField)
     box.children = List(recordBox, removeBtn)
@@ -146,42 +189,43 @@ object App extends JFXApp {
     records.addAll(copy)
   }
 
-  stage = new JFXApp.PrimaryStage {
+  stage = new JFXApp.PrimaryStage { self =>
     title = "Aliaser"
+    resizable = false
     scene = new Scene(400, 500) {
       private val borderPane = new BorderPane {
         private val vbox = new VBox() {
-          spacing = 5
+          spacing = 10
           padding = Insets(10)
           alignment = Pos.Center
-          private val gridPane = new GridPane {
+          gridPane = new GridPane {
             vgap = 10
-            private val scroll = new ScrollPane {
+            scrollPane = new ScrollPane {
               padding = Insets(5)
               content = recordsBox
             }
-            scroll.setFitToHeight(true)
-            scroll.setFitToWidth(true)
-            scroll.style = "-fx-background-color: transparent;" +
-              "-fx-border-color: transparent transparent gray transparent;"
+            scrollPane.setFitToHeight(true)
+            scrollPane.setFitToWidth(true)
+            scrollPane.style = defaultScrollPaneStyle
+            self.setOnShown(_ => scrollPane.lookup(".viewport").setStyle("-fx-background-color: #141414;"))
 
             val colConst = new ColumnConstraints
             colConst.percentWidth = 100
             columnConstraints.addAll(colConst)
 
-            GridPane.setVgrow(scroll, Priority.Always)
-            GridPane.setHalignment(scroll, HPos.Center)
+            GridPane.setVgrow(scrollPane, Priority.Always)
+            GridPane.setHalignment(scrollPane, HPos.Center)
             GridPane.setHalignment(addButton, HPos.Center)
             GridPane.setHalignment(status, HPos.Center)
 
-            add(scroll, 0, 0)
+            add(scrollPane, 0, 0)
             add(addButton, 0, 1)
             add(status, 0, 2)
-//            style = "-fx-border-color: green;"
+            style = defaultGridPaneStyle
           }
           VBox.setVgrow(gridPane, Priority.Always)
           children = List(gridPane)
-//          style = "-fx-border-color: red;"
+          style = "-fx-background-color: #141414;"
         }
         center = vbox
       }
