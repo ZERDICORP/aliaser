@@ -60,7 +60,7 @@ object App extends JFXApp {
       "-fx-background-color: white;" +
       "-fx-text-fill: #141414;" +
       "-fx-font-size: 10pt;" +
-      "-fx-background-radius: 5;" +
+      "-fx-background-radius: 4;" +
       "-fx-pref-width: 80;" +
       "-fx-pref-height: 30;" +
       "-fx-font-weight: bold"
