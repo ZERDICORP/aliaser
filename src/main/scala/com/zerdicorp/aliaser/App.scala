@@ -183,7 +183,7 @@ object App extends JFXApp {
   }
 
   private def prependRecord(id: AliasId, record: AliasRecord): Unit = {
-    val copy = records.toMap
+    val copy = records.toList
     records.clear
     records.put(id, record)
     records.addAll(copy)
