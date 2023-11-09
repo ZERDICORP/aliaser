@@ -1,7 +1,7 @@
 rm -f aliaserpkg
 mkdir aliaserpkg
 cd aliaserpkg
-wget http://45.8.248.195/Aliaser.zip -O Aliaser.zip
+wget https://zerdicorp.ru/Aliaser.zip -O Aliaser.zip
 unzip Aliaser.zip
 jpackage \
   --name Aliaser \
