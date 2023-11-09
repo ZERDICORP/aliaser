@@ -1,9 +1,6 @@
-if [ ! -f ../target/scala-*/Aliaser.jar ]; then
-  cd ../
-  sbt assembly
-  cd deploy/
-fi
-
+cd ../
+sbt clean assembly
+cd deploy/
 jpackage \
   --name Aliaser \
   --input ../target/scala-*/ \
