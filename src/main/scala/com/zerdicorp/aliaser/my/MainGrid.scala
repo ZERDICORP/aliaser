@@ -5,10 +5,10 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane, Priority}
 
 final case class MainGrid(
     node: scalafx.scene.layout.GridPane,
-    defaultStyleClass: String,
+    defaultStyleClass: Seq[String],
 ) extends Node {
   def greenlight(): Unit = ad("main-grid-greenlight")
-  def lightOff(): Unit = rm("main-grid-greenlight")
+  def lightOff(): Unit = reset()
 }
 
 object MainGrid {
@@ -35,7 +35,7 @@ object MainGrid {
     }
     MainGrid(
       node = gridPane,
-      defaultStyleClass,
+      gridPane.styleClass.toSeq,
     )
   }
 }

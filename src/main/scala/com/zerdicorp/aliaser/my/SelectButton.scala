@@ -7,12 +7,11 @@ import scala.collection.mutable
 
 final case class SelectButton(btn: Button, recordId: AliasRecordId) extends ButtonWrapper {
   def active(): Unit = btn.ad("select-btn-active")
-  def inactive(): Unit = btn.rm("select-btn-active")
+  def inactive(): Unit = btn.reset()
   def block(): Unit = btn.ad("select-btn-blocked")
   def unblock(): Unit =
-    if (btn.cnt("select-btn-blocked")) {
-      btn.rm("select-btn-blocked")
-    }
+    if (btn.cnt("select-btn-blocked"))
+      btn.reset()
 }
 
 object SelectButton {

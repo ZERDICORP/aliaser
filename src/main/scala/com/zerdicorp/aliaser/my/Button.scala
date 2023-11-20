@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 
 case class Button(
     node: scalafx.scene.control.Button,
-    defaultStyleClass: String,
+    defaultStyleClass: Seq[String],
 ) extends Node {
   def disable(): Unit = node.disable = true
   def enable(): Unit = node.disable = false
@@ -16,12 +16,14 @@ case class Button(
 }
 
 object Button {
-  def apply(_text: String, defaultStyleClass: String): Button =
+  def apply(_text: String, defaultStyleClass: String): Button = {
+    val btn = new scalafx.scene.control.Button {
+      text = _text
+      this.getStyleClass.add(defaultStyleClass)
+    }
     Button(
-      node = new scalafx.scene.control.Button {
-        text = _text
-        this.getStyleClass.add(defaultStyleClass)
-      },
-      defaultStyleClass,
+      node = btn,
+      btn.styleClass.toSeq,
     )
+  }
 }

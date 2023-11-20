@@ -4,20 +4,12 @@ import scala.language.implicitConversions
 
 trait Node {
   val node: scalafx.scene.Node
-  val defaultStyleClass: String
+  val defaultStyleClass: Seq[String]
 
-  def cnt(styleClass: String): Boolean =
-    node.getStyleClass.contains(styleClass)
-
-  def rm(styleClass: String): Unit = {
-    node.getStyleClass.remove(styleClass)
-    node.getStyleClass.add(defaultStyleClass)
-  }
-
-  def ad(styleClass: String): Unit = {
-    node.getStyleClass.remove(defaultStyleClass)
-    node.getStyleClass.add(styleClass)
-  }
+  def cnt(styleClass: String): Boolean = node.getStyleClass.contains(styleClass)
+  def reset(): Unit = node.styleClass = defaultStyleClass
+  def ad(styleClass: String): Unit =
+    node.styleClass = defaultStyleClass.filter(!styleClass.startsWith(_)) ++ Seq(styleClass)
 }
 
 object Node {

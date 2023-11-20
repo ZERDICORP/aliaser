@@ -2,12 +2,16 @@ package com.zerdicorp.aliaser
 
 import cats.implicits.catsSyntaxOptionId
 import com.zerdicorp.aliaser.FileUtils.{appendSourceToRcFile, initDotFile, readDotFile}
+import com.zerdicorp.aliaser.ValueFormat.StringOps
+import javafx.scene.input.KeyCode
 import scalafx.application.{JFXApp, Platform}
 import scalafx.geometry.{HPos, Insets}
 import scalafx.scene.Scene
+import scalafx.scene.input.MouseButton
 import scalafx.scene.layout._
+import scalafx.stage.Stage
 
-object App extends JFXApp {
+object App extends JFXApp { mainApp =>
   import Implicits._
   import Storage._
 
@@ -26,12 +30,16 @@ object App extends JFXApp {
 
   private val savedLblAnime = SavedLblAnime(savedLbl, asyncDude)(
     onAppearance = { _ =>
-      mainGrid.greenlight()
-      recordScroll.greenlight()
+      Platform.runLater(() => {
+        mainGrid.greenlight()
+        recordScroll.greenlight()
+      })
     },
     onDisappearance = { _ =>
-      mainGrid.lightOff()
-      recordScroll.lightOff()
+      Platform.runLater(() => {
+        mainGrid.lightOff()
+        recordScroll.lightOff()
+      })
     },
   )
 
@@ -46,7 +54,7 @@ object App extends JFXApp {
         selects.clear()
         recordsVBox.children.clear()
         Thread.sleep(250)
-        readDotFile().reverse.map(AliasRecord.fromString(_).some).foreach(addRecord)
+        reload()
         swapButton.disable()
         recordSelector.reset()
       },
@@ -71,8 +79,54 @@ object App extends JFXApp {
     selects.addOne(selectBtn)
 
     val keyField = my.KeyField(record.key)
-    val valueField = my.ValueField(record.value)
+    val valueField = my.ValueField(record.value.pseudo)
     KeyValueChangeFlow(keyField, valueField, recordId, _ => autosave(500))
+
+    valueField.onMouseClicked = { e =>
+      if (e.getButton == MouseButton.Secondary.toString() || e.isMetaDown) {
+        val stage = new Stage { outer =>
+          title = keyField.text
+          scene = new Scene(500, 600) { self =>
+            stylesheets.add("main.css")
+            self.setOnKeyPressed(e =>
+              if (e.getCode eq KeyCode.ESCAPE) {
+                savedLblAnime.reset()
+                outer.close()
+                mainApp.stage.show()
+              },
+            )
+            root = new BorderPane {
+              this.getStyleClass.add("modal-root")
+              padding = Insets(25)
+              private val scriptArea = my.ScriptArea(records(recordId).value)
+              center = scriptArea
+              savedLblAnime.mod(
+                newOnAppearance = _ => {
+                  Platform.runLater(() => {
+                    scriptArea.greenlight()
+                  })
+                },
+                newOnDisappearance = _ => {
+                  Platform.runLater(() => {
+                    scriptArea.lightOff()
+                  })
+                },
+              )
+              KeyValueChangeFlow.modal(
+                scriptArea,
+                recordId,
+                _ => {
+                  valueField.node.text = scriptArea.text().pseudo
+                  autosave(500)
+                },
+              )
+            }
+          }
+        }
+        mainApp.stage.hide()
+        stage.show()
+      }
+    }
 
     val removeBtn = my.RemoveButton { _ =>
       records.remove(recordId)
@@ -93,7 +147,12 @@ object App extends JFXApp {
   stage = new JFXApp.PrimaryStage {
     title = "Aliaser"
     resizable = false
-    scene = new Scene(500, 600) {
+    scene = new Scene(500, 600) { self =>
+      self.setOnKeyPressed(e =>
+        if (e.getCode eq KeyCode.ESCAPE) {
+          mainApp.stage.close()
+        },
+      )
       stylesheets.add("main.css")
       private val borderPane = new BorderPane {
         private val vbox = new VBox() {
@@ -132,10 +191,13 @@ object App extends JFXApp {
     super.stopApp()
   }
 
+  def reload(): Unit =
+    AliasRecord.fromLines(readDotFile()).foreach(a => addRecord(a.some))
+
   def initialize(): Unit = {
     appendSourceToRcFile()
     initDotFile()
-    readDotFile().reverse.map(AliasRecord.fromString(_).some).foreach(addRecord)
+    reload()
   }
 
   initialize()

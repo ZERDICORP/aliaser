@@ -4,10 +4,10 @@ import scalafx.geometry.Insets
 
 final case class RecordScroll(
     node: scalafx.scene.control.ScrollPane,
-    defaultStyleClass: String,
+    defaultStyleClass: Seq[String],
 ) extends Node {
   def greenlight(): Unit = ad("record-scroll-greenlight")
-  def lightOff(): Unit = rm("record-scroll-greenlight")
+  def lightOff(): Unit = reset()
 }
 
 object RecordScroll {
@@ -22,7 +22,7 @@ object RecordScroll {
     }
     RecordScroll(
       node = scrollPane,
-      defaultStyleClass,
+      scrollPane.styleClass.toSeq,
     )
   }
 }

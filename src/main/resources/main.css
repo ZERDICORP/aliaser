@@ -1,3 +1,76 @@
+.modal-root {
+    -fx-background-color: #141414;
+}
+
+.script-area-greenlight .content {
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.script-area-greenlight:focused .content {
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.script-area-greenlight {
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-border-radius: 5;
+    -fx-border-color: #55f626;
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+}
+
+.script-area-wrong .content {
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.script-area-wrong:focused .content {
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.script-area-wrong {
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-border-radius: 5;
+    -fx-border-color: #f83b3b;
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+}
+
+.script-area .content {
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.script-area:focused .content {
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.script-area {
+    -fx-font-size: 16px;
+    -fx-padding: 10px;
+    -fx-border-radius: 5;
+    -fx-border-color: gray;
+    -fx-text-fill: white;
+    -fx-background-color: #141414;
+}
+
 .remove-btn:hover {
     -fx-cursor: hand;
     -fx-background-color: #ef0000;

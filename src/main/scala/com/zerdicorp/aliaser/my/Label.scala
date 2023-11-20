@@ -2,7 +2,7 @@ package com.zerdicorp.aliaser.my
 
 case class Label(
     node: scalafx.scene.control.Label,
-    defaultStyleClass: String,
+    defaultStyleClass: Seq[String],
 ) extends Node {
   def mod(f: scalafx.scene.control.Label => Unit): Label = {
     f(node)
@@ -11,12 +11,14 @@ case class Label(
 }
 
 object Label {
-  def apply(_text: String, defaultStyleClass: String): Label =
+  def apply(_text: String, defaultStyleClass: String): Label = {
+    val lbl = new scalafx.scene.control.Label {
+      text = _text
+      this.getStyleClass.add(defaultStyleClass)
+    }
     Label(
-      node = new scalafx.scene.control.Label {
-        text = _text
-        this.getStyleClass.add(defaultStyleClass)
-      },
-      defaultStyleClass,
+      node = lbl,
+      lbl.styleClass.toSeq,
     )
+  }
 }
