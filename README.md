@@ -19,3 +19,5 @@ After making some changes, go to `deploy` directory and run `makedmg.sh`, your *
 in the **current directory**.
 
 <!-- Security scan triggered at 2025-09-02 04:23:27 -->
+
+<!-- Security scan triggered at 2025-09-09 05:40:56 -->
